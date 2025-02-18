@@ -1,0 +1,75 @@
+---
+title: "Fox Discussion Week 2"
+date: 2/5/2025
+format: docx
+---
+
+```{r libraries, message = FALSE, warning = FALSE}
+# load libraries
+library(tidyverse)
+library(Matrix)
+library(pracma)
+```
+
+## Exercise C27 (Beeker, 353): Determinant & LU Decomposition of a Matrix
+
+This week, I chose an exercise from the Determinants chapter in the textbook, and I found both the determinant (per the exercise as written) and the LU decomposition. 
+
+First, the matrix:
+
+```{r}
+A <- matrix(c(1, 0, 1, 1,
+              2, 2, -1, 1,
+              2, 1, 3, 0,
+              1, 1, 0, 1), 
+            nrow=4, 
+            byrow=TRUE)
+```
+
+Now the determinant is easily calculated:
+
+```{r determinant}
+det <- det(A)
+det
+
+```
+
+The determinant of matrix A is four, which means that the matrix scales volume by a factor of four and importantly, it is non-singular: it is invertible; its columns are not linearly dependent and it does not collapse space; and there is one solution to Ax = b for any b. 
+
+And finally, using the Matrix package, the LU Decomposition into lower and upper triangles is also straightforward:
+
+```{r LU_Decomp}
+LU = lu(A)
+L <- LU$L
+U <- LU$U
+
+L
+U
+
+```
+
+Finally, as a check, multiplying them together brings us back to the original matrix:
+```{r check}
+check <- L %*% U
+check
+```
+
+
+## Questions: 
+
+### How does LU or LDU decomposition simplify solving linear systems compared to directly applying Gaussian elimination?
+
+LU decomposition simplifies solving linear systems by breaking a matrix into two simpler matrices for efficiency in solving multiple equations with the same matrix (scalar) but different values for b. Instead of performing a new gaussian elimination each time, only two steps are needed for each b:
+
+1. Solve Ly = b
+2. Solve Ux = b
+
+### Provide an example (it can be theoretical) that illustrates the advantages of these methods, such as efficiency, modularity, or numerical stability. Discuss how these methods might extend to broader applications, such as engineering simulations, graphics, or data science.
+
+In many applications, a matrix can represent a system that stays the same, like network or a structure, while the inputs and outputs change. Using a modular approach like LU decomposition allows us to factor the matrix just once while solving for many different scenarios, making it highly useful for engineering, data science, and other applications. 
+
+For example, in structural engineering, a matrix can represent a set of characteristics of a structure's components (such as a bridge). External loads (e.g. cars, wind) would be represented by b, and we would then solve for x, the internal forces within the structure. Since the structure itself remains constant, LU decomposition enables engineers to evaluate many scenarios efficiently to understand the impact of loads on the structure. Furthermore, it is stable over large datasets for accuracy.
+
+This would also hold true for analyzing inputs/outputs of other systems, like supply chains, schedules, and other operations management optimization problems. In data science, LU decomposition is used for the least squares method of finding a line of best fit, again efficiently handling many values of x and y. 
+
+Generally speaking, matrices are found everywhere and this seems to be a very efficient approach to quickly and accurately evaluate a variety of scenarios when A stays the same and only b changes.

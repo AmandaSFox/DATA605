@@ -1,0 +1,161 @@
+---
+title: "DATA 605 Assignment 1"
+author: "Amanda Fox"
+format: pdf
+---
+
+Load libraries: 
+
+```{r libraries, message = FALSE, warning = FALSE}
+# load libraries
+library(tidyverse)
+library(ggplot2)
+library(patchwork)
+```
+
+### 1. Task: Create a simple shape (like a square or triangle) using point plots in R. Implement R code to apply different transformations (scaling, rotation, reflection) to the shape by left multiplying a transformation matrix by each of the point vectors. Demonstrate these transformations through animated plots.
+
+To create a triangle, we use a 2x4 matrix: the columns representing three point vectors (x,y) with the first point vector repeated at the end to close the shape.
+```{r create_shape, fig.width=2, fig.height=2}
+# create matrix defining triangle:
+my_shape <- matrix(c(0,0,
+                     1,0,
+                     0,1,
+                     0,0), 
+                   nrow = 2, byrow = TRUE)
+my_shape
+
+# prepare to plot: convert to df and label columns x & y
+df_my_shape <- as.data.frame(t(my_shape))  
+colnames(df_my_shape) <- c("x","y")
+
+df_my_shape
+
+# plot
+plot_my_shape <- df_my_shape %>% 
+  ggplot(aes(x = x, y = y)) +
+         geom_path(color = 'blue', linewidth = 1.2) +
+         geom_hline(yintercept = 0, color = "gray30") +
+         geom_vline(xintercept = 0, color = "gray30") +
+         coord_fixed(xlim = c(-2,2), ylim = c(-2,2)) +
+         theme_minimal()
+
+plot_my_shape + plot_annotation("Original Triangle")
+
+```
+
+Next, we can scale the shape by multiplying it by a transformation matrix. In this case, we set up our transformation matrix to multiply both x and y by 2:
+```{r scale}
+
+# create scaling transformation matrix multiplying x and y by 2 
+matrix_scale <- matrix(c(2,0,
+                         0,2),
+                       nrow = 2, byrow = TRUE)
+matrix_scale
+
+# multiply: transpose my_shape matrix so # rows match # columns 
+my_shape_scaled <- t(my_shape) %*% matrix_scale 
+my_shape_scaled
+
+# convert to df with column names x,y
+df_my_shape_scaled <- as.data.frame(my_shape_scaled)  
+colnames(df_my_shape_scaled) <- c("x","y")
+
+df_my_shape_scaled
+
+# plot
+plot_my_shape_scaled <- df_my_shape_scaled %>% 
+  ggplot(aes(x = x, y = y)) +
+  geom_path(color = 'blue', linewidth = 1.2) +
+  geom_hline(yintercept = 0, color = "gray30") +
+  geom_vline(xintercept = 0, color = "gray30") +
+  coord_fixed(xlim = c(-2,2), ylim = c(-2,2)) +
+  theme_minimal()
+
+plot_my_shape + plot_my_shape_scaled  + plot_annotation("Original and Scaled Triangle")
+
+```
+
+We can also use a transformation matrix to flip our shape over. In the example below, we create a transformation matrix to flip the shape over the x axis by keeping x values the same while multiplying y values by -1:
+```{r flip}
+# create transformation matrix (x, y) → (x, -y)
+matrix_flip <- matrix(c(1, 0,
+                        0,-1),
+                       nrow = 2, byrow = TRUE)
+matrix_flip
+
+# multiply: transpose my_shape matrix so # rows match # columns 
+my_shape_flip <- t(my_shape) %*% matrix_flip 
+my_shape_flip
+
+# convert to df with column names x,y
+df_my_shape_flip <- as.data.frame(my_shape_flip)  
+colnames(df_my_shape_flip) <- c("x","y")
+
+df_my_shape_flip
+
+# plot
+plot_my_shape_flip <- df_my_shape_flip %>% 
+  ggplot(aes(x = x, y = y)) +
+  geom_path(color = 'blue', linewidth = 1.2) +
+  geom_hline(yintercept = 0, color = "gray30") +
+  geom_vline(xintercept = 0, color = "gray30") +
+  coord_fixed(xlim = c(-2,2), ylim = c(-2,2)) +
+  theme_minimal()
+
+plot_my_shape + plot_my_shape_flip + plot_annotation("Original and Flipped Triangle")
+
+```
+
+Finally, we can use transformation matrices to rotate a shape. Below, we use a transformation matrix rotating our shape 90 degrees clockwise and repeat four times for a full 360 degrees:
+
+```{r rotate_static}
+
+# create transformation matrix (x, y) → (-y, x)
+matrix_rotate_90 <- matrix(c(0,-1,
+                             1, 0),
+                           nrow = 2, byrow = TRUE)
+matrix_rotate_90
+
+# create list to hold plots for display
+rotated_shapes <- list()
+rotated_shapes[[1]] <- plot_my_shape
+
+current_shape <- t(my_shape)
+current_shape
+
+# loop: multiply, convert to df, create and store plot
+
+for (i in 2:5) {
+  
+  # multiply matrix
+  current_shape <- current_shape %*% matrix_rotate_90 
+  current_shape
+  
+  # convert transformed matrix to df with column names x,y
+  df_rotate_90 <- as.data.frame(current_shape)  
+  colnames(df_rotate_90) <- c("x","y")
+  
+  df_rotate_90
+  
+  # create and store plot
+  rotated_shapes[[i]] <- df_rotate_90 %>% 
+    ggplot(aes(x = x, y = y)) +
+    geom_path(color = 'blue', linewidth = 1.2) +
+    geom_hline(yintercept = 0, color = "gray30") +
+    geom_vline(xintercept = 0, color = "gray30") +
+    coord_fixed(xlim = c(-2,2), ylim = c(-2,2)) +
+    theme_minimal() 
+  }
+
+plot_display <- rotated_shapes[[1]] +
+                rotated_shapes[[2]] +
+                rotated_shapes[[3]] +
+                rotated_shapes[[4]] +
+                rotated_shapes[[5]]
+plot_display + 
+  plot_layout(ncol = 5) +
+  plot_annotation("Original and Rotated Triangles")
+
+```
+

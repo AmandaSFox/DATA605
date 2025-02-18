@@ -1,0 +1,10 @@
+A <- matrix(c(-12, 30,
+              -5, 13), 
+            nrow=2, 
+            byrow=TRUE)
+
+A
+
+my_eigen <- eigen(A)
+my_eigen$values
+my_eigen$vectors

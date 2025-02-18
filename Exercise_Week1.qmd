@@ -1,0 +1,112 @@
+---
+title: "Fox Discussion Week1"
+date: 1/29/2025
+format: docx
+---
+
+Hello all – I chose a three-part vector exercise this week for my first attempt at using R for linear algebra problems. I explored a few packages and struggled with unexpected results when finding the null set in part 1, but eventually found a solution and the rest went quite well. 
+
+###Problem: 
+
+```{r libraries, message = FALSE, warning = FALSE}
+# load libraries
+library(tidyverse)
+library(MASS)
+library(pracma)
+```
+
+First I created the matrix A and vector z:  
+```{r matrix}
+# create matrix A
+A <- matrix(c(2,3,1,4,
+              1,2,1,3,
+              -1,0,1,1), 
+            nrow = 3,
+            byrow = TRUE)
+A
+
+# create vector z
+z <- c(3,-5,1,2)
+z
+```
+#### 1. Find a set S so that N(A) = <S> 
+
+This was unusually challenging. First I used the MASS package: the Null() function should find the null space of A in a single step, outputting the set of basis vectors. However, it provided only one vector, in decimals:
+
+```{r MASS}
+A_null_MASS <- Null(A) 
+A_null_MASS
+```
+This single vector is not the correct solution as there are two free variables shown in the row reduced matrix below (using the pracma package):
+
+```{r RREF}
+A_rref <- rref(A)
+A_rref
+```
+Manually, I got this set of two basis vectors and verified with an online calculator, which gave me a way to check my results from R: 
+```{r manual_solution}
+manual_solution <- matrix(c(1,-1,1,0,
+                            1,-2,0,1),
+                          ncol=2)
+manual_solution
+```
+The pracma package did a little better than MASS as it did result in two vectors, however it was still displayed as decimals. I believe this has to do with scaling but I was not able to reverse to get the expected integer values:
+```{r pracma}
+A_null_pracma <- nullspace(A)
+A_null_pracma
+```
+Finally I found a solution on stackoverflow.com (Stack Overflow). A kind soul had created the below formula which easily returned the expected basis vectors. It uses the QR decomposition method which is said to be more stable. I am still digesting it, but I appreciate that it is transparent and easily provided the expected response, which will help my learning.
+
+```{r kindsoul}
+# "https://stackoverflow.com/questions/43223579/solve-homogenous-system-ax-0-for-any-m-n-matrix-a-in-r-find-null-space-basi)"
+
+NullSpace <- function (A) {
+  m <- dim(A)[1]; n <- dim(A)[2]
+  ## QR factorization and rank detection
+  QR <- base::qr.default(A)
+  r <- QR$rank
+  ## cases 2 to 4
+  if ((r < min(m, n)) || (m < n)) {
+    R <- QR$qr[1:r, , drop = FALSE]
+    P <- QR$pivot
+    F <- R[, (r + 1):n, drop = FALSE]
+    I <- base::diag(1, n - r)
+    B <- -1.0 * base::backsolve(R, F, r)
+    Y <- base::rbind(B, I)
+    X <- Y[base::order(P), , drop = FALSE]
+    return(X)
+  }
+  ## case 1
+  return(base::matrix(0, n, 1))
+}
+
+#Call function
+S <- NullSpace(A)
+round(S, 15)
+
+S
+```
+### 2. Determine if vector z is in spanning set S
+
+By multiplying A by z, the zero vector is returned, which means that z is in the null space of A (spanning set S):
+```{r zero_vector}
+# Multiply A by z
+test_z <- A %*% z
+test_z
+```
+
+### 3. Write as a linear combination
+
+Since z is in the null space of A (spanning set S), we can find the coefficients for the two basis vectors in <S> that will give us vector z. R provides the "qr.solve" function, which returns the below coefficients, giving us the linear combination:
+
+z =  S1 +  2(S2)
+
+```{r coefficients}
+c <- qr.solve(S,z)
+c
+```
+
+### 4. Practical Applications
+
+While this was just an abstract exercise, null space, spanning sets, and linear combinations are foundational concepts. I have encountered these concepts in system optimization problems for example, and also in identifying redundant variables in predictive modeling. I understand they are also found in engineering problems, image compression and noise filtering (redundant information again). Knowing the math is helpful in better understanding these and other applications. 
+Regarding challenges in real-world applications, I would venture to say data quality and availability, computing power, and practicality of the solution would all come into play.
