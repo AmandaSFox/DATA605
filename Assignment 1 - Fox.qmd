@@ -11,6 +11,8 @@ Load libraries:
 library(tidyverse)
 library(ggplot2)
 library(patchwork)
+library(jpeg)
+library(RCurl)
 ```
 
 ### 1. Task: Create a simple shape (like a square or triangle) using point plots in R. Implement R code to apply different transformations (scaling, rotation, reflection) to the shape by left multiplying a transformation matrix by each of the point vectors. Demonstrate these transformations through animated plots.
@@ -159,3 +161,131 @@ plot_display +
 
 ```
 
+### 2. Proofs & SVD Example
+#### A. Prove that $A \times B \neq B \times A$
+```{r commutative}
+# --------------
+# AB <> BA
+# --------------
+
+# define two 3x3 matrices A and B
+
+A <- matrix(c(1,2,3,
+              4,5,6,
+              7,8,9),
+            nrow = 3, byrow = TRUE)
+
+B <- matrix(c(1, 0,-1,
+              1, 2, 0,
+              0,-1, 1),
+            nrow = 3, byrow = TRUE)
+
+A%*%B
+B%*%A
+
+```
+
+
+#### B. Prove that $A^T*A$ is always symmetric.
+
+The matrix $A^T \times A$ is always symmetric because by transposing any matrix $A$ with dimensions $m \times n$, we get a matrix $A^T$ with dimensions $n \times m$. This has two implications for multiplying $A^T \times A$:
+
+1. The multiplication $(n \times m) \times (m \times n)$ always works because the number of columns in the first matrix ($m$) match the number of rows($m$) in the second, which makes matrix multiplication possible.
+
+2. The resulting matrix has dimensions $n \times n$, which is square and symmetric, because the dimensions are defined by the number of rows in the first matrix ($n$) and the number of columns in the second matrix (also $n$).
+
+```{r symmetric}
+
+# Matrix A from above:
+A
+
+# Transpose of A:
+t(A)
+
+# Transpose of A times A:
+t(A) %*% A
+
+```
+
+
+
+#### C. Prove that $det(A^T \times A)$ is non-negative
+$A^T \times A$ results in a square matrix as shown above, so we can calculate a determinant. 
+
+We also know that $det(A^T \times A) = det(A)^2$, and also that, like any square, $det(A)^2$ must be $\geq 0$.
+
+Therefore, if  $det(A^T \times A) = det(A)^2$ and $det(A)^2 \geq 0$ then $det(A^T \times A) \geq 0$.
+
+```{r determinant}
+
+# determinant of transpose of A times A:
+det(t(A) %*% A)
+
+```
+
+
+#### D. Singular Value Decomposition (SVD) and Image Compression: Write an R function that performs Singular Value Decomposition (SVD) on a grayscale image (which can be represented as a matrix). Use this decomposition to compress the image by keeping only the top k singular values and their corresponding vectors. Demonstrate the effect of different values of k on the compressed image's quality.
+
+This was a challenging but beneficial exercise demonstrating a practical application of matrix decomposition. I had never manipulated images before so R function help and online resources (ChatGPT for coding assistance; see Works Cited) were particularly helpful in problem-solving this exercise as I worked my way through understanding the data behind images and manipulating that data in R as matrices. 
+
+First, I used a black and white image that turned out to be encoded as RGB. I learned this is common for compatibility reasons, but all channels will have the same values for a grayscale image: this meant I could extract any channel in order to apply SVD with a simple R function. 
+
+Then I extracted the components U, S, and V and created a function to reconstruct the image matrices for various values of k (ChatGPT). The first iteration resulted in appropriately compressed images but in shades of red and rotated -90 degrees. Changing to gray was easy but I found multiple explanations for rotating the images; a matrix approach was most helpful to my understanding in the context of this assignment. While I could not multiply by a transformation matrix directly, the earlier rotation exercise was helpful in understanding how to manipulate the x,y points as rows/columns in an image, while the image matrix expressed the intensity.
+
+The resulting transformed images were compressed relative to the k value: low values for k (5, 40) showed significant loss of detail, while a higher value (80) was much closer to the original image, but still not as sharp. 
+
+``` {r import_image}
+
+# import image and convert to matrix
+
+my_url <- "https://raw.githubusercontent.com/AmandaSFox/DATA605/main/OC1Y7T0.jpg"
+my_image <- readJPEG(getURLContent(my_url, binary = TRUE))
+
+# check if three channels (RGB) and if so, extract one channel to make it grayscale
+if(length(dim(my_image)) == 3) {
+  my_image <- my_image[, , 1] 
+  }
+
+# validate image size and not three dimensions 
+dim(my_image)
+
+# apply SVD and display components
+my_svd <- svd(my_image)
+
+# Extract components
+U <- my_svd$u
+S <- diag(my_svd$d) 
+V <- my_svd$v
+
+# Reconstruct image FUNCTION
+reconstruct_image <- function(k) {
+  U_k <- U[, 1:k]  # First k columns of U
+  S_k <- S[1:k, 1:k]  # Top k singular values
+  V_k <- V[, 1:k]  # First k columns of V
+  img_k <- U_k %*% S_k %*% t(V_k)
+  return(img_k)
+}
+
+# Substitute different k values and create three new matrices: 
+img_k5 <- reconstruct_image(5)
+img_k40 <- reconstruct_image(30)
+img_k80 <- reconstruct_image(80)
+
+# create function to correct rotation:      
+rotate_90 <- function(image_matrix) {
+  rotated_matrix <- t(image_matrix)[, ncol(image_matrix):1]
+  return(rotated_matrix)
+}
+
+# setting to display all images in one row
+par(mfrow = c(1,4))
+
+# create three images, rotate 90 degrees and make them gray instead of red
+my_image_k5 <- image(rotate_90(img_k5), col = gray.colors(256), main="k = 5")
+my_image_k40 <- image(rotate_90(img_k40), col = gray.colors(256), main="k = 40")
+my_image_k80 <- image(rotate_90(img_k80), col = gray.colors(256), main="k = 80")
+my_image_orig <- image(rotate_90(my_image), col = gray.colors(256), main="Original")
+
+
+
+```

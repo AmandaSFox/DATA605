@@ -3,6 +3,12 @@ title: "assignment 1 question 2"
 format: html
 ---
 
+```{r library}
+library(jpeg)
+library(RCurl)
+```
+
+
 ### 2. Proofs & SVD Example
 #### A. Prove that $A \times B \neq B \times A$
 ```{r commutative}
@@ -67,3 +73,58 @@ det(t(A) %*% A)
 
 
 #### D. Singular Value Decomposition (SVD) and Image Compression: Write an R function that performs Singular Value Decomposition (SVD) on a grayscale image (which can be represented as a matrix). Use this decomposition to compress the image by keeping only the top k singular values and their corresponding vectors. Demonstrate the effect of different values of k on the compressed image's quality.
+
+``` {r import_image}
+
+# import image and convert to matrix
+
+my_url <- "https://raw.githubusercontent.com/AmandaSFox/DATA605/main/OC1Y7T0.jpg"
+my_image <- readJPEG(getURLContent(my_url, binary = TRUE))
+
+# check if three channels (RGB) and if so, extract one channel to make it grayscale
+if(length(dim(my_image)) == 3) {
+  my_image <- my_image[, , 1] 
+  }
+
+# validate not three channels 
+dim(my_image)
+
+# apply SVD and display components
+my_svd <- svd(my_image)
+
+# Extract components
+U <- my_svd$u
+S <- diag(my_svd$d) 
+V <- my_svd$v
+
+# Reconstruct image FUNCTION
+reconstruct_image <- function(k) {
+  U_k <- U[, 1:k]  # First k columns of U
+  S_k <- S[1:k, 1:k]  # Top k singular values
+  V_k <- V[, 1:k]  # First k columns of V
+  img_k <- U_k %*% S_k %*% t(V_k)
+  return(img_k)
+}
+
+# Substitute different k values and create three new matrices: 
+img_k5 <- reconstruct_image(5)
+img_k30 <- reconstruct_image(30)
+img_k50 <- reconstruct_image(50)
+img_k80 <- reconstruct_image(80)
+
+# create function to correct rotation:      
+rotate_90 <- function(image_matrix) {
+  rotated_matrix <- t(image_matrix)[, ncol(image_matrix):1]
+  return(rotated_matrix)
+}
+
+# create three images, rotate 90 degrees and make them gray instead of red
+my_image_k5 <- image(rotate_90(img_k5), col = gray.colors(256))
+my_image_k30 <- image(rotate_90(img_k30), col = gray.colors(256))
+my_image_k50 <- image(rotate_90(img_k50), col = gray.colors(256))
+my_image_k80 <- image(rotate_90(img_k80), col = gray.colors(256))
+my_image_orig <- image(rotate_90(my_image), col = gray.colors(256))
+
+
+
+```
