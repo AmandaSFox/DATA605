@@ -15,7 +15,7 @@ library(patchwork)
 
 ### 1. Task: Create a simple shape (like a square or triangle) using point plots in R. Implement R code to apply different transformations (scaling, rotation, reflection) to the shape by left multiplying a transformation matrix by each of the point vectors. Demonstrate these transformations through animated plots.
 
-To create a triangle, we use a 2x4 matrix: the columns representing three point vectors (x,y) with the first point vector repeated at the end to close the shape.
+To create a triangle, we use a 2x4 matrix: the first three columns represent three point vectors (x,y) and the fourth column repeats the first point vector to close the shape.
 ```{r create_shape, fig.width=2, fig.height=2}
 # create matrix defining triangle:
 my_shape <- matrix(c(0,0,
