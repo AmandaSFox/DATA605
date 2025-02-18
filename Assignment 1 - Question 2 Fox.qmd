@@ -1,0 +1,69 @@
+---
+title: "assignment 1 question 2"
+format: html
+---
+
+### 2. Proofs & SVD Example
+#### A. Prove that $A \times B \neq B \times A$
+```{r commutative}
+# --------------
+# AB <> BA
+# --------------
+
+# define two 3x3 matrices A and B
+
+A <- matrix(c(1,2,3,
+              4,5,6,
+              7,8,9),
+            nrow = 3, byrow = TRUE)
+
+B <- matrix(c(1, 0,-1,
+              1, 2, 0,
+              0,-1, 1),
+            nrow = 3, byrow = TRUE)
+
+A%*%B
+B%*%A
+
+```
+
+
+#### B. Prove that $A^T*A$ is always symmetric.
+
+The matrix $A^T \times A$ is always symmetric because by transposing any matrix $A$ with dimensions $m \times n$, we get a matrix $A^T$ with dimensions $n \times m$. This has two implications for multiplying $A^T \times A$:
+
+1. The multiplication $(n \times m) \times (m \times n)$ always works because the number of columns in the first matrix ($m$) match the number of rows($m$) in the second, which makes matrix multiplication possible.
+
+2. The resulting matrix has dimensions $n \times n$, which is square and symmetric, because the dimensions are defined by the number of rows in the first matrix ($n$) and the number of columns in the second matrix (also $n$).
+
+```{r symmetric}
+
+# Matrix A from above:
+A
+
+# Transpose of A:
+t(A)
+
+# Transpose of A times A:
+t(A) %*% A
+
+```
+
+
+
+#### C. Prove that $det(A^T \times A)$ is non-negative
+$A^T \times A$ results in a square matrix as shown above, so we can calculate a determinant. 
+
+And based on the theorem that $det(A^T \times A) = det(A)^2$, it follows that the determinant of $A^T \times A$ cannot be negative because any number times itself must be $\geq 0$.
+
+Therefore, if  $det(A^T \times A) = det(A)^2$ and $det(A)^2 \geq 0$ then $det(A^T \times A) \geq 0$.
+
+```{r determinant}
+
+# determinant of transpose of A times A:
+det(t(A) %*% A)
+
+```
+
+
+#### D. Singular Value Decomposition (SVD) and Image Compression: Write an R function that performs Singular Value Decomposition (SVD) on a grayscale image (which can be represented as a matrix). Use this decomposition to compress the image by keeping only the top k singular values and their corresponding vectors. Demonstrate the effect of different values of k on the compressed image's quality.
