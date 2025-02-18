@@ -280,12 +280,19 @@ rotate_90 <- function(image_matrix) {
 # setting to display all images in one row
 par(mfrow = c(1,4))
 
-# create three images, rotate 90 degrees and make them gray instead of red
+# create four images, applying above rotation function, gray instead of red
 my_image_k5 <- image(rotate_90(img_k5), col = gray.colors(256), main="k = 5")
 my_image_k40 <- image(rotate_90(img_k40), col = gray.colors(256), main="k = 40")
 my_image_k80 <- image(rotate_90(img_k80), col = gray.colors(256), main="k = 80")
 my_image_orig <- image(rotate_90(my_image), col = gray.colors(256), main="Original")
 
 
-
 ```
+
+#### Works Cited
+Beezer, Robert. “A First Course in Linear Algebra.” Open Textbook Library, 2015, 
+  open.umn.edu/opentextbooks/textbooks/5. Accessed Feb. 2025.
+ChatGPT. “ChatGPT.” Chatgpt.com, 2024, chatgpt.com. Accessed Feb. 2025.
+  Occasional R coding and LaTeX assistance.
+Layerace. Image by Layerace on Freepik. 
+  www.freepik.com/free-vector/dandelion-background-design_921206.htm. Accessed 18 Feb. 2025.
